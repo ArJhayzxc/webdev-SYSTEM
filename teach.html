@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Appreciation App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            padding: 50px;
+            background-image: url(teach5.jpg);
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            color: #ffffff; /* Default text color */
+            font-weight: bold;
+            overflow: hidden; /* Prevents scrollbars from appearing */
+        }
+        h1 {
+            font-size: 36px; /* Increase font size to 36px */
+            color: #000000; /* Change header text color to black */
+            animation: dance 1s infinite alternate; /* Add dancing animation */
+        }
+        p {
+            color: #000000; /* Set paragraph text color to black */
+            animation: dance 1s infinite alternate; /* Add dancing animation */
+        }
+        @keyframes dance {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); } /* Move up */
+            100% { transform: translateY(0); } /* Move back to original position */
+        }
+        .container {
+            margin-top: 30px;
+        }
+        .teacher-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.6s; /* Smooth transition for the backflip */
+        }
+        .teacher-button:hover {
+            background-color: #0056b3;
+        }
+        /* Backflip animation */
+        @keyframes backflip {
+            0% { transform: perspective(400px) rotateY(0); }
+            50% { transform: perspective(400px) rotateY(180deg); }
+            100% { transform: perspective(400px) rotateY(360deg); }
+        }
+        .backflip {
+            animation: backflip 0.6s forwards; /* Apply the backflip animation */
+        }
+        .custom-message-container {
+            margin-top: 30px;
+        }
+        .message-label {
+            font-size: 18px;
+            color: #000000; /* Set message label text color to black */
+            margin-top: 20px;
+            padding: 10px; /* Add padding to the message label */
+            display: inline-block; /* Center the label with a block display */
+            border: none; /* Remove border */
+            background-color: rgba(255, 255, 255, 0.9); /* Set background color to white */
+            border-radius: 5px; /* Add rounded corners */
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            margin: 10px;
+            border: 2px solid #ffffff; /* White border for better visibility */
+            background: rgba(255, 255, 255, 0.1); /* Slightly transparent white background */
+            color: #000000; /* Set input text color to black */
+        }
+        .send-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .send-button:hover {
+            background-color: #218838;
+        }
+
+        /* Fireworks Canvas */
+        #fireworksCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Prevents canvas from interfering with button clicks */
+            z-index: 9999; /* Ensure canvas is above everything */
+        }
+
+        /* Falling Balloons Styles */
+        .balloon {
+            position: fixed;
+            width: 30px;
+            height: 50px;
+            border-radius: 50%;
+            bottom: 100%;
+            animation: fall 4s ease-in forwards;
+            z-index: -1;
+        }
+        .balloon::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            width: 2px;
+            height: 20px;
+            background-color: white; /* Change balloon string color to white */
+            transform: translateX(-50%);
+        }
+        .balloon.red { background-color: red; }
+        .balloon.blue { background-color: blue; }
+        .balloon.green { background-color: green; }
+        .balloon.yellow { background-color: yellow; }
+
+        @keyframes fall {
+            0% { bottom: 100%; }
+            100% { bottom: -10%; }
+        }
+
+        /* Confetti Styles */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0.9;
+            pointer-events: none; /* Prevents interaction with confetti */
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="fireworksCanvas"></canvas>
+
+    <h1>Happy Teacher's Day</h1>
+    <p>Click a button to show appreciation for your teacher!</p>
+    
+    <div class="container">
+        <button class="teacher-button" onclick="displayMessage('Sir Bry', this)">Sir Bry</button>
+        <button class="teacher-button" onclick="displayMessage('Sir Marv', this)">Sir Marv</button>
+        <button class="teacher-button" onclick="displayMessage('Sir Christian', this)">Sir Christian</button>
+        <button class="teacher-button" onclick="displayMessage('Sir Jeff', this)">Sir Jeff</button>
+        <button class="teacher-button" onclick="displayMessage('Maam Jessa', this)">Maam Jessa</button>
+    </div>
+    
+    <div class="custom-message-container">
+        <input type="text" id="customMessage" placeholder="Enter your custom appreciation message here...">
+        <button class="send-button" onclick="sendCustomMessage()">Send Custom Message to Random Teacher</button>
+    </div>
+    
+    <div class="message-label" id="messageLabel">Click a button to appreciate a teacher!</div>
+
+    <script>
+        const messages = [
+            "Thank you, [name], for always inspiring us!",
+            "We appreciate your hard work, [name]!",
+            "[name], your dedication is truly amazing!",
+            "You make learning fun, [name]!",
+            "[name], your passion for teaching is unmatched!"
+        ];
+
+        const teachers = ["Sir Bry", "Sir Marv", "Sir Christian", "Sir Jeff", "Maam Jessa"];
+
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        function displayMessage(teacherName, button) {
+            const randomIndex = Math.floor(Math.random() * messages.length);
+            const message = messages[randomIndex].replace("[name]", teacherName);
+            document.getElementById("messageLabel").innerText = message;
+            document.getElementById("messageLabel").style.backgroundColor = "rgba(255, 255, 255, 0.9)"; // Set background color to white
+            showBalloons();
+            showFireworks(); // Show fireworks on button click
+            createConfetti(); // Create falling confetti
+
+            // Add backflip class to button
+            button.classList.add('backflip');
+            // Remove backflip class after animation completes
+            setTimeout(() => {
+                button.classList.remove('backflip');
+            }, 600); // Duration of the backflip animation
+        }
+
+        function sendCustomMessage() {
+            const customMessage = document.getElementById("customMessage").value;
+            const randomTeacher = teachers[Math.floor(Math.random() * teachers.length)];
+            document.getElementById("messageLabel").innerText = `To ${randomTeacher}: ${customMessage}`;
+            document.getElementById("messageLabel").style.color = "#000000"; // Set text color to black for custom message
+            document.getElementById("messageLabel").style.backgroundColor = "rgba(255, 255, 255, 0.9)"; // Set background color to white
+            showBalloons();
+            showFireworks(); // Show fireworks on button click
+            createConfetti(); // Create falling confetti
+        }
+
+        // Function to generate random balloons when a button is clicked
+        function showBalloons() {
+            const colors = ["red", "blue", "green", "yellow"];
+            for (let i = 0; i < 10; i++) {
+                const balloon = document.createElement("div");
+                balloon.className = `balloon ${colors[Math.floor(Math.random() * colors.length)]}`;
+                balloon.style.left = `${Math.random() * window.innerWidth}px`;
+                document.body.appendChild(balloon);
+                
+                // Remove balloons after animation ends
+                balloon.addEventListener("animationend", () => {
+                    document.body.removeChild(balloon);
+                });
+            }
+        }
+
+        // Fireworks effect
+        function showFireworks() {
+            const particles = [];
+            const colors = ['red', 'green', 'blue', 'orange', 'purple', 'white'];
+
+            // Particle class
+            class Particle {
+                constructor(x, y) {
+                    this.x = x;
+                    this.y = y;
+                    this.size = Math.random() * 5 + 2;
+                    this.speedX = Math.random() * 5 - 2.5;
+                    this.speedY = Math.random() * -5 - 1;
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                    this.friction = 0.95;
+                    this.gravity = 0.2;
+                }
+                update() {
+                    this.speedY += this.gravity;
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    this.speedX *= this.friction;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Create particles
+            for (let i = 0; i < 3; i++) { // Create 3 fireworks at different x positions
+                const x = Math.random() * canvas.width; // Random x position
+                for (let j = 0; j < 300; j++) { // Increased the number of particles to 300
+                    particles.push(new Particle(x, canvas.height)); // Start at the bottom
+                }
+            }
+
+            // Animate particles
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((particle, index) => {
+                    particle.update();
+                    particle.draw();
+                    // Remove particles when they fade out
+                    if (particle.size <= 0) {
+                        particles.splice(index, 1);
+                    }
+                    particle.size *= 0.95; // Gradually reduce size
+                });
+                if (particles.length > 0) {
+                    requestAnimationFrame(animateParticles);
+                }
+            }
+
+            animateParticles();
+        }
+
+        // Create falling confetti
+        function createConfetti() {
+            const colors = ["#ff0", "#f00", "#0f0", "#00f", "#ff0", "#ff00ff", "#00ffff"];
+            const confettiCount = 100; // Number of confetti pieces
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement("div");
+                confetti.className = "confetti";
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * window.innerWidth + 'px';
+                confetti.style.top = Math.random() * -20 + 'px';
+                confetti.style.transition = 'top 2s ease-in forwards';
+                document.body.appendChild(confetti);
+
+                // Animate confetti falling
+                setTimeout(() => {
+                    confetti.style.top = window.innerHeight + 'px'; // Move confetti down
+                }, 10); // Delay to start falling
+
+                // Remove confetti after falling animation ends
+                confetti.addEventListener("transitionend", () => {
+                    document.body.removeChild(confetti);
+                });
+            }
+        }
+
+        // Adjust canvas size on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+    
+</body>
+</html>
